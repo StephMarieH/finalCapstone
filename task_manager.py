@@ -234,6 +234,7 @@ def edit_task(task, task_list):
         #  Task has been completed.
         if task_edit == '1':
             task['completed'] = True
+            print("Task is listed as completed!")
             break
 
         # Edit the username assigned to the task.
@@ -257,7 +258,8 @@ def edit_task(task, task_list):
                         print("ERROR: You need to enter a due date in the future.")
                         # Continue the loop to prompt user for a valid due date.
                         continue
-                    # Exit loop is due date is in the future.
+                    # Save new due date and exit loop if due date is in the future.
+                    task['due_date'] = due_date_time
                     break
                 except ValueError:
                     print("ERROR: Please enter due date using (YYYY-MM-DD) format: \n")
@@ -301,6 +303,7 @@ def generate_user_report(username_password, task_list):
     Then performs calculations required in the report as per the project spec.
     Prints these answers in an easy to read format to a file in the folder.
     '''
+    print("Report has been generated.")
     users_total = len(username_password)
     tasks_total = len(task_list)
     
@@ -389,35 +392,25 @@ def generate_task_report(task_list):
             task_overview.write("\n")
 
 
-def admin_check(curr_user):
-    '''
-    Checks if current user is using the admin username.
-    '''
-    if curr_user == "admin":
-        return True
-    else:
-        print("ERROR: Generating Reports is only available to the admin")
-        return False
-
-
 
 #---------- End of Functions. -----------
                  
 #---------- Start of main code. ------------
             
+# Create user.txt if it doesn't exist
+if not os.path.exists("user.txt"):
+    with open("user.txt", "w") as default_file:
+        default_file.write("admin;password")
+
 # Create tasks.txt if it doesn't exist
 if not os.path.exists("tasks.txt"):
     with open("tasks.txt", "w") as default_file:
         pass
 
-with open("tasks.txt", 'r') as task_file:
-    task_data = task_file.read().split("\n")
-    task_data = [t for t in task_data if t != ""]
-
 
 task_list = []
 
-for t_str in task_data:
+for t_str in task_list:
     curr_t = {}
 
     # Split by semicolon and manually add each component
@@ -491,18 +484,6 @@ e - exit
 : ''').lower()
     print(line())
 
-    # else: 
-        # print(line())
-        # print()
-        # menu = input('''Select one of the following Options below:
-# r - registering a user
-# a - adding a task
-# va - view all tasks
-# vm - view my task
-# ds - display statistics
-# e - exit
-# : ''').lower()
-    # print(line())
 
     if menu == 'r':
         reg_user(username_password)
@@ -517,26 +498,34 @@ e - exit
         view_mine(task_list, curr_user)
 
     elif menu == 'gr':
-        if admin_check(curr_user):  # Checks if current user is admin
+        # Only enable admins to generarte reports.
+        if curr_user == 'admin':
             generate_task_report(task_list)
             generate_user_report(username_password, task_list)
 
         else:
+            print("Only admin users can generate reports.")
             # Return to main menu.
-            continue   
+            continue  
 
-    elif menu == 'ds' and curr_user == 'admin': 
+    elif menu == 'ds':
         '''
-        If the user is an admin they can display statistics about number of users
-        and tasks.
+        If admin user is logged in, show the display statistics option.
+    if admin_rights:
         '''
-        num_users = len(username_password.keys())
-        num_tasks = len(task_list)
+        if curr_user == 'admin':
+            num_users = len(username_password.keys())
+            num_tasks = len(task_list)
 
-        print(line())
-        print(f"Number of users: \t\t {num_users}")
-        print(f"Number of tasks: \t\t {num_tasks}")
-        print(line())
+            print(line())
+            print(f"Number of users: \t\t {num_users}")
+            print(f"Number of tasks: \t\t {num_tasks}")
+            print(line())
+
+        else:
+            print("Only admin users can display statistics.")
+            # Return to main menu.
+            continue  
 
     elif menu == 'e':
         print('Goodbye!!!')
